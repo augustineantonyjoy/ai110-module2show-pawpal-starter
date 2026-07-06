@@ -1,6 +1,11 @@
 """Manual CLI check for the PawPal+ backend logic."""
 
+from tabulate import tabulate
+
 from pawpal_system import Owner, Pet, Task, Scheduler
+
+STATUS_EMOJI = {True: "✅", False: "⏳"}
+PRIORITY_EMOJI = {"high": "🔴", "medium": "🟡", "low": "🟢"}
 
 
 def main() -> None:
@@ -26,13 +31,17 @@ def main() -> None:
     schedule = scheduler.sort_by_time(scheduler.get_today_schedule())
 
     print("=== Today's Schedule ===")
-    for task in schedule:
-        pet = pet_by_task[id(task)]
-        status = "Done" if task.completed else "Pending"
-        print(
-            f"[{task.time}] {pet.name} - {task.description} "
-            f"(frequency: {task.frequency}, status: {status})"
-        )
+    rows = [
+        [
+            task.time,
+            pet_by_task[id(task)].name,
+            task.description,
+            task.frequency,
+            f"{STATUS_EMOJI[task.completed]} {'Done' if task.completed else 'Pending'}",
+        ]
+        for task in schedule
+    ]
+    print(tabulate(rows, headers=["Time", "Pet", "Description", "Frequency", "Status"], tablefmt="simple"))
 
     conflicts = scheduler.detect_conflicts(schedule)
     if conflicts:
@@ -42,12 +51,17 @@ def main() -> None:
 
     rex_tasks = scheduler.filter_tasks(schedule, pet_name="Rex")
     print("\n=== Rex's Tasks Only ===")
-    for task in rex_tasks:
-        status = "Done" if task.completed else "Pending"
-        print(
-            f"[{task.time}] Rex - {task.description} "
-            f"(frequency: {task.frequency}, status: {status})"
-        )
+    rows = [
+        [
+            task.time,
+            "Rex",
+            task.description,
+            task.frequency,
+            f"{STATUS_EMOJI[task.completed]} {'Done' if task.completed else 'Pending'}",
+        ]
+        for task in rex_tasks
+    ]
+    print(tabulate(rows, headers=["Time", "Pet", "Description", "Frequency", "Status"], tablefmt="simple"))
 
     daily_task = next(task for task in dog.get_tasks() if task.description == "Give medication")
     dog.complete_task(daily_task)
@@ -58,20 +72,31 @@ def main() -> None:
     }
 
     print("\n=== Schedule After Completing Daily Task ===")
-    for task in updated_schedule:
-        pet = updated_pet_by_task[id(task)]
-        status = "Done" if task.completed else "Pending"
-        print(
-            f"[{task.time}] {pet.name} - {task.description} "
-            f"(frequency: {task.frequency}, status: {status}, due: {task.due_date})"
-        )
-
+    rows = [
+        [
+            task.time,
+            updated_pet_by_task[id(task)].name,
+            task.description,
+            task.frequency,
+            f"{STATUS_EMOJI[task.completed]} {'Done' if task.completed else 'Pending'}",
+            task.due_date,
+        ]
+        for task in updated_schedule
+    ]
+    print(tabulate(rows, headers=["Time", "Pet", "Description", "Frequency", "Status", "Due"], tablefmt="simple"))
 
     priority_schedule = scheduler.sort_by_priority_then_time(scheduler.get_today_schedule())
 
     print("\n=== Schedule by Priority ===")
-    for task in priority_schedule:
-        print(f"[{task.priority}] {task.time} - {task.description}")
+    rows = [
+        [
+            f"{PRIORITY_EMOJI[task.priority]} {task.priority}",
+            task.time,
+            task.description,
+        ]
+        for task in priority_schedule
+    ]
+    print(tabulate(rows, headers=["Priority", "Time", "Description"], tablefmt="simple"))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,9 @@
 import streamlit as st
 from pawpal_system import Owner, Pet, Task, Scheduler
 
+STATUS_EMOJI = {True: "✅", False: "⏳"}
+PRIORITY_EMOJI = {"high": "🔴", "medium": "🟡", "low": "🟢"}
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -83,11 +86,11 @@ if pet.get_tasks():
     st.write("Current tasks:")
     for i, task in enumerate(pet.get_tasks()):
         row1, row2, row3, row4 = st.columns([3, 1, 1, 1])
-        row1.write(task.description)
+        row1.write(f"{PRIORITY_EMOJI[task.priority]} {task.description}")
         row2.write(task.time)
         row3.write(task.frequency)
         if task.completed:
-            row4.write("✅ completed")
+            row4.write(f"{STATUS_EMOJI[task.completed]} completed")
         else:
             if row4.checkbox("Mark complete", key=f"complete_task_{i}"):
                 pet.complete_task(task)
@@ -119,7 +122,8 @@ if st.button("Generate schedule"):
                     "description": task.description,
                     "time": task.time,
                     "frequency": task.frequency,
-                    "completed": task.completed,
+                    "priority": f"{PRIORITY_EMOJI[task.priority]} {task.priority}",
+                    "completed": STATUS_EMOJI[task.completed],
                 }
                 for task in sorted_tasks
             ]

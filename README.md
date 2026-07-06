@@ -91,6 +91,7 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 - **Daily/weekly recurrence** — `Task.next_occurrence()` and `Pet.complete_task()` automatically generate the next occurrence of a "daily" or "weekly" task (with `due_date` advanced by one day or one week) as soon as the current one is marked complete.
 - **Priority-based scheduling** — `Scheduler.sort_by_priority_then_time()` orders tasks by priority (high → medium → low), breaking ties within a priority group by time.
 - **Data persistence** — `Owner.save_to_json()` and `Owner.load_from_json()` save and restore an owner's pets and tasks to/from a JSON file, so data survives an app restart.
+- **Polished output formatting** — emoji status (✅/⏳) and priority (🔴/🟡/🟢) indicators throughout, with `main.py` rendering its schedule sections as aligned tables via `tabulate`.
 
 ## 📐 Smarter Scheduling
 
@@ -126,6 +127,13 @@ Files modified to support this:
 - `pawpal_system.py` — adds the `Owner.save_to_json()` and `Owner.load_from_json()` methods.
 - `app.py` — loads the owner from `data.json` on startup and saves after every mutation (adding a pet, adding a task, marking a task complete).
 - `.gitignore` — adds `data.json`, since it's user-generated runtime data and not something to commit.
+
+## 🎨 Output Formatting
+
+- **Status indicators** — ✅ (done) / ⏳ (pending), used in both `main.py` and `app.py`.
+- **Priority indicators** — 🔴 (high) / 🟡 (medium) / 🟢 (low), used in both `main.py` and `app.py`.
+- `main.py` uses the `tabulate` library (`tablefmt="simple"`) to render all its schedule sections as aligned tables instead of manual print loops.
+- `app.py` shows the same emoji indicators inline in the task list and in the generated schedule's `st.table`.
 
 ## 📸 Demo Walkthrough
 
