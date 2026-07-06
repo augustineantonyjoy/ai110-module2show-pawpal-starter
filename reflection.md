@@ -4,13 +4,18 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+My design centers on four classes: `Task`, `Pet`, `Owner`, and `Scheduler`.
+
+- `Task` is a simple data holder for a single care activity: `description`, `time` (HH:MM string), `frequency` ("once"/"daily"/"weekly"), and a `completed` flag, plus a `mark_complete()` method.
+- `Pet` stores a pet's `name` and `species` and owns a list of its `Task`s, with `add_task()` and `get_tasks()`.
+- `Owner` manages a list of `Pet`s and can aggregate every task across all of their pets via `get_all_tasks()`.
+- `Scheduler` is the "brain" of the system. It holds a reference to an `Owner` and is responsible for all cross-cutting logic that doesn't belong to any single pet: building the day's schedule, sorting by time, filtering by pet/status, and detecting scheduling conflicts.
+
+I kept `Task` and `Pet` as Python dataclasses since they're mostly data with a couple of small behaviors, which keeps the code concise per the project's guidance.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+- No structural changes yet — this section will be updated in later phases if the implementation reveals gaps (e.g., additional helper methods on `Scheduler` needed to talk to `Owner`/`Pet`).
 
 ---
 
