@@ -59,6 +59,8 @@ Conflict at 08:00: Morning walk, Feed breakfast
 
 ## 🧪 Testing PawPal+
 
+The test suite covers task completion, task addition, chronological sorting of the daily schedule, daily/weekly recurrence when a task is completed, and detection of time conflicts between tasks.
+
 ```bash
 # Run the full test suite:
 pytest
@@ -70,8 +72,16 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+tests/test_pawpal.py::test_task_completion PASSED                        [ 20%]
+tests/test_pawpal.py::test_task_addition PASSED                          [ 40%]
+tests/test_pawpal.py::test_sorting_correctness PASSED                    [ 60%]
+tests/test_pawpal.py::test_recurrence_logic PASSED                       [ 80%]
+tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
+
+5 passed in 0.01s
 ```
+
+**Confidence Level:** ⭐⭐⭐⭐ (4/5) — all core scheduling behaviors pass reliably, though the suite is still small and doesn't yet cover edge cases like weekly recurrence or filtering.
 
 ## 📐 Smarter Scheduling
 
