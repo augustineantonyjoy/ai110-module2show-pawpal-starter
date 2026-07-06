@@ -15,6 +15,7 @@ class Task:
     completed: bool = False
     due_date: date = field(default_factory=date.today)
     priority: str = "medium"
+    duration_minutes: int = 30
 
     def mark_complete(self) -> None:
         """Mark this task as completed."""
@@ -90,6 +91,7 @@ class Owner:
                             "completed": task.completed,
                             "due_date": task.due_date.isoformat(),
                             "priority": task.priority,
+                            "duration_minutes": task.duration_minutes,
                         }
                         for task in pet.get_tasks()
                     ],
@@ -119,6 +121,7 @@ class Owner:
                         completed=task_data["completed"],
                         due_date=date.fromisoformat(task_data["due_date"]),
                         priority=task_data["priority"],
+                        duration_minutes=task_data["duration_minutes"],
                     )
                     for task_data in pet_data["tasks"]
                 ],
@@ -144,6 +147,39 @@ class Scheduler:
         """Return the given tasks sorted by priority (high to low), then by time."""
         priority_order = {"high": 0, "medium": 1, "low": 2}
         return sorted(tasks, key=lambda task: (priority_order[task.priority], task.time))
+
+    def find_next_available_slot(
+        self,
+        tasks: List[Task],
+        duration_minutes: int,
+        day_start: str = "06:00",
+        day_end: str = "22:00",
+    ) -> Optional[str]:
+        """Return the first "HH:MM" gap of at least duration_minutes between day_start and day_end, or None."""
+
+        def to_minutes(time_str: str) -> int:
+            hours, minutes = map(int, time_str.split(":"))
+            return hours * 60 + minutes
+
+        def to_hhmm(total_minutes: int) -> str:
+            return f"{total_minutes // 60:02d}:{total_minutes % 60:02d}"
+
+        start_limit = to_minutes(day_start)
+        end_limit = to_minutes(day_end)
+        busy_intervals = sorted(
+            (to_minutes(task.time), to_minutes(task.time) + task.duration_minutes)
+            for task in tasks
+        )
+
+        cursor = start_limit
+        for busy_start, busy_end in busy_intervals:
+            if busy_start - cursor >= duration_minutes:
+                return to_hhmm(cursor)
+            cursor = max(cursor, busy_end)
+
+        if end_limit - cursor >= duration_minutes:
+            return to_hhmm(cursor)
+        return None
 
     def filter_tasks(
         self,

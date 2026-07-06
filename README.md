@@ -92,6 +92,18 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 - **Priority-based scheduling** — `Scheduler.sort_by_priority_then_time()` orders tasks by priority (high → medium → low), breaking ties within a priority group by time.
 - **Data persistence** — `Owner.save_to_json()` and `Owner.load_from_json()` save and restore an owner's pets and tasks to/from a JSON file, so data survives an app restart.
 - **Polished output formatting** — emoji status (✅/⏳) and priority (🔴/🟡/🟢) indicators throughout, with `main.py` rendering its schedule sections as aligned tables via `tabulate`.
+- **Next available slot finder** — `Scheduler.find_next_available_slot()` takes a desired duration and scans a pet's existing tasks (using each task's `duration_minutes`) to return the first open `"HH:MM"` gap between `day_start` and `day_end`, or `None` if the day is fully booked.
+
+## 🔍 Next Available Slot
+
+Given a duration and a pet's existing tasks, `Scheduler.find_next_available_slot(tasks, duration_minutes, day_start="06:00", day_end="22:00")` treats each task as a busy interval (`time` to `time + duration_minutes`), sorts them, and walks forward from `day_start` looking for the first gap big enough to fit the requested duration — returning `None` if no such gap exists before `day_end`. This is what finally makes the "Duration (minutes)" input in `app.py`'s Add Task form meaningful — it's now stored on the `Task` (`duration_minutes`) and persisted through `save_to_json`/`load_from_json`, instead of being collected and discarded.
+
+Sample CLI output from `main.py`:
+
+```
+=== Next Available 45-Minute Slot ===
+06:00
+```
 
 ## 📐 Smarter Scheduling
 

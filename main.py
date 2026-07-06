@@ -98,6 +98,11 @@ def main() -> None:
     ]
     print(tabulate(rows, headers=["Priority", "Time", "Description"], tablefmt="simple"))
 
+    next_slot = scheduler.find_next_available_slot(scheduler.get_today_schedule(), duration_minutes=45)
+
+    print("\n=== Next Available 45-Minute Slot ===")
+    print(next_slot if next_slot is not None else "No slot found")
+
 
 if __name__ == "__main__":
     main()

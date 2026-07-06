@@ -55,6 +55,34 @@ def test_priority_sorting():
     assert [task.description for task in sorted_tasks] == ["Task B", "Task C", "Task A"]
 
 
+def test_find_next_available_slot():
+    pet = Pet("Rex", "Dog")
+    pet.add_task(Task("Task A", "08:00", duration_minutes=30))
+    pet.add_task(Task("Task B", "10:00", duration_minutes=30))
+    owner = Owner("Alice", pets=[pet])
+    scheduler = Scheduler(owner)
+
+    slot = scheduler.find_next_available_slot(
+        scheduler.get_today_schedule(), duration_minutes=45, day_start="08:00"
+    )
+
+    assert slot == "08:30"
+
+    fully_booked_pet = Pet("Whiskers", "Cat")
+    fully_booked_pet.add_task(Task("All day task", "09:00", duration_minutes=60))
+    fully_booked_owner = Owner("Bob", pets=[fully_booked_pet])
+    fully_booked_scheduler = Scheduler(fully_booked_owner)
+
+    no_slot = fully_booked_scheduler.find_next_available_slot(
+        fully_booked_scheduler.get_today_schedule(),
+        duration_minutes=30,
+        day_start="09:00",
+        day_end="10:00",
+    )
+
+    assert no_slot is None
+
+
 def test_conflict_detection():
     pet = Pet("Rex", "Dog")
     pet.add_task(Task("Feed breakfast", "08:00"))

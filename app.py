@@ -79,7 +79,7 @@ with col4:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
 if st.button("Add task"):
-    pet.add_task(Task(task_title, task_time))
+    pet.add_task(Task(task_title, task_time, duration_minutes=int(duration)))
     owner.save_to_json()
 
 if pet.get_tasks():
