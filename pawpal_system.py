@@ -12,6 +12,7 @@ class Task:
     frequency: str = "once"
     completed: bool = False
     due_date: date = field(default_factory=date.today)
+    priority: str = "medium"
 
     def mark_complete(self) -> None:
         """Mark this task as completed."""
@@ -83,6 +84,11 @@ class Scheduler:
     def sort_by_time(self, tasks: List[Task]) -> List[Task]:
         """Return the given tasks sorted by their time attribute."""
         return sorted(tasks, key=lambda task: task.time)
+
+    def sort_by_priority_then_time(self, tasks: List[Task]) -> List[Task]:
+        """Return the given tasks sorted by priority (high to low), then by time."""
+        priority_order = {"high": 0, "medium": 1, "low": 2}
+        return sorted(tasks, key=lambda task: (priority_order[task.priority], task.time))
 
     def filter_tasks(
         self,

@@ -89,6 +89,7 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 - **Filtering by pet/status** — `Scheduler.filter_tasks()` narrows the task list by pet name and/or completion status, independently or combined.
 - **Time-conflict warnings** — `Scheduler.detect_conflicts()` flags any tasks scheduled at the same time and returns human-readable warning strings instead of raising errors.
 - **Daily/weekly recurrence** — `Task.next_occurrence()` and `Pet.complete_task()` automatically generate the next occurrence of a "daily" or "weekly" task (with `due_date` advanced by one day or one week) as soon as the current one is marked complete.
+- **Priority-based scheduling** — `Scheduler.sort_by_priority_then_time()` orders tasks by priority (high → medium → low), breaking ties within a priority group by time.
 
 ## 📐 Smarter Scheduling
 
@@ -98,6 +99,20 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 | Filtering | `Scheduler.filter_tasks()` | Filters by pet_name and/or completed status, either independently or combined |
 | Conflict handling | `Scheduler.detect_conflicts()` | Flags tasks that share the exact same time, returning warning strings instead of raising an error |
 | Recurring tasks | `Task.next_occurrence()` / `Pet.complete_task()` | On completing a "daily" or "weekly" task, automatically creates the next occurrence with due_date advanced by 1 day or 1 week |
+| Priority scheduling | `Scheduler.sort_by_priority_then_time()` | Sorts tasks by priority (high → medium → low), then by time within each priority group |
+
+### Priority Scheduling
+
+Running `python main.py` also prints the schedule ordered by priority:
+
+```
+=== Schedule by Priority ===
+[high] 08:00 - Morning walk
+[medium] 08:00 - Feed breakfast
+[medium] 09:00 - Give medication
+[medium] 18:30 - Clean litter box
+[low] 09:00 - Give medication
+```
 
 ## 📸 Demo Walkthrough
 

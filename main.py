@@ -9,8 +9,8 @@ def main() -> None:
     dog = Pet("Rex", "Dog")
     cat = Pet("Whiskers", "Cat")
 
-    dog.add_task(Task("Morning walk", "08:00"))
-    dog.add_task(Task("Give medication", "09:00", frequency="daily"))
+    dog.add_task(Task("Morning walk", "08:00", priority="high"))
+    dog.add_task(Task("Give medication", "09:00", frequency="daily", priority="low"))
     cat.add_task(Task("Feed breakfast", "08:00"))
     cat.add_task(Task("Clean litter box", "18:30", frequency="daily"))
 
@@ -65,6 +65,13 @@ def main() -> None:
             f"[{task.time}] {pet.name} - {task.description} "
             f"(frequency: {task.frequency}, status: {status}, due: {task.due_date})"
         )
+
+
+    priority_schedule = scheduler.sort_by_priority_then_time(scheduler.get_today_schedule())
+
+    print("\n=== Schedule by Priority ===")
+    for task in priority_schedule:
+        print(f"[{task.priority}] {task.time} - {task.description}")
 
 
 if __name__ == "__main__":

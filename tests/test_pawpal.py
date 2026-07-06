@@ -42,6 +42,19 @@ def test_recurrence_logic():
     assert new_task.due_date == due_date + timedelta(days=1)
 
 
+def test_priority_sorting():
+    pet = Pet("Rex", "Dog")
+    pet.add_task(Task("Task A", "09:00", priority="low"))
+    pet.add_task(Task("Task B", "08:00", priority="high"))
+    pet.add_task(Task("Task C", "10:00", priority="medium"))
+    owner = Owner("Alice", pets=[pet])
+    scheduler = Scheduler(owner)
+
+    sorted_tasks = scheduler.sort_by_priority_then_time(scheduler.get_today_schedule())
+
+    assert [task.description for task in sorted_tasks] == ["Task B", "Task C", "Task A"]
+
+
 def test_conflict_detection():
     pet = Pet("Rex", "Dog")
     pet.add_task(Task("Feed breakfast", "08:00"))
