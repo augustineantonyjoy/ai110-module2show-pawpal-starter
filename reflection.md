@@ -15,7 +15,8 @@ I kept `Task` and `Pet` as Python dataclasses since they're mostly data with a c
 
 **b. Design changes**
 
-- No structural changes yet — this section will be updated in later phases if the implementation reveals gaps (e.g., additional helper methods on `Scheduler` needed to talk to `Owner`/`Pet`).
+- Added a `due_date` field to `Task` (defaulting to today) that wasn't in the original design. It became necessary once I implemented recurring tasks in Phase 4 — without a date, there was nothing for a "daily" or "weekly" task to advance by `timedelta`.
+- Added `Pet.complete_task()` rather than putting completion/recurrence logic on `Scheduler`. Since a `Task` already belongs to a specific `Pet`, it made more sense for the `Pet` to own the responsibility of marking a task done and appending its next occurrence, keeping `Scheduler` focused purely on cross-pet operations (sorting, filtering, conflict detection).
 
 ---
 
@@ -23,13 +24,20 @@ I kept `Task` and `Pet` as Python dataclasses since they're mostly data with a c
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The `Scheduler` considers four constraints:
+
+- **Time**: `sort_by_time()` orders tasks chronologically by their `time` (HH:MM) attribute so the owner sees the day in order.
+- **Pet / completion status**: `filter_tasks()` narrows the list down to a specific pet's tasks and/or only pending/completed ones, so an owner isn't overwhelmed by every task for every pet at once.
+- **Frequency**: `Task.next_occurrence()` (called from `Pet.complete_task()`) automatically regenerates "daily"/"weekly" tasks so recurring care (feeding, meds) doesn't have to be manually re-entered.
+- **Time collisions**: `detect_conflicts()` flags when two tasks land on the exact same time, which matters most for a single owner juggling multiple pets' schedules.
+
+I prioritized time and conflicts first since a schedule that's out of order or silently double-books a time slot is the most immediately confusing to a user; filtering and recurrence were the next layer of convenience on top of a correct base schedule.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+One tradeoff: I asked my AI coding assistant to review `Scheduler.filter_tasks()` for simplification. It suggested combining the two sequential `if` blocks (filter by pet, then filter by completion) into a single list comprehension with combined boolean conditions, avoiding one intermediate list allocation.
+
+I rejected this suggestion and kept the original two-step version. The performance gain is negligible at this scale (a handful of tasks per pet), while the original's step-by-step narrowing ("first filter by pet, then by status") is easier to read at a glance than a single comprehension with `(x is None or ...) and (y is None or ...)` logic. This is a case where the more "Pythonic" version traded away readability for a performance gain the app doesn't need — I chose clarity since this is a learning project meant to be read by graders/reviewers, not a hot path.
 
 ---
 

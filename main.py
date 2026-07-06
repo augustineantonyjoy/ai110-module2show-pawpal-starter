@@ -40,6 +40,32 @@ def main() -> None:
         for warning in conflicts:
             print(warning)
 
+    rex_tasks = scheduler.filter_tasks(schedule, pet_name="Rex")
+    print("\n=== Rex's Tasks Only ===")
+    for task in rex_tasks:
+        status = "Done" if task.completed else "Pending"
+        print(
+            f"[{task.time}] Rex - {task.description} "
+            f"(frequency: {task.frequency}, status: {status})"
+        )
+
+    daily_task = next(task for task in dog.get_tasks() if task.description == "Give medication")
+    dog.complete_task(daily_task)
+
+    updated_schedule = scheduler.sort_by_time(scheduler.get_today_schedule())
+    updated_pet_by_task = {
+        id(task): pet for pet in owner.pets for task in pet.get_tasks()
+    }
+
+    print("\n=== Schedule After Completing Daily Task ===")
+    for task in updated_schedule:
+        pet = updated_pet_by_task[id(task)]
+        status = "Done" if task.completed else "Pending"
+        print(
+            f"[{task.time}] {pet.name} - {task.description} "
+            f"(frequency: {task.frequency}, status: {status}, due: {task.due_date})"
+        )
+
 
 if __name__ == "__main__":
     main()

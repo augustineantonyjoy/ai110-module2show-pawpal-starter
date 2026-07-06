@@ -1,6 +1,7 @@
 """Logic layer for PawPal+: Owner, Pet, Task, and Scheduler classes."""
 
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from typing import List, Optional
 
 
@@ -10,10 +11,29 @@ class Task:
     time: str
     frequency: str = "once"
     completed: bool = False
+    due_date: date = field(default_factory=date.today)
 
     def mark_complete(self) -> None:
         """Mark this task as completed."""
         self.completed = True
+
+    def next_occurrence(self) -> Optional["Task"]:
+        """Return the next recurring Task instance, or None if this task doesn't recur."""
+        if self.frequency == "once":
+            return None
+        if self.frequency == "daily":
+            delta = timedelta(days=1)
+        elif self.frequency == "weekly":
+            delta = timedelta(weeks=1)
+        else:
+            return None
+        return Task(
+            description=self.description,
+            time=self.time,
+            frequency=self.frequency,
+            completed=False,
+            due_date=self.due_date + delta,
+        )
 
 
 @dataclass
@@ -29,6 +49,13 @@ class Pet:
     def get_tasks(self) -> List[Task]:
         """Return this pet's list of tasks."""
         return self.tasks
+
+    def complete_task(self, task: Task) -> None:
+        """Mark a task complete and schedule its next occurrence, if any."""
+        task.mark_complete()
+        next_task = task.next_occurrence()
+        if next_task is not None:
+            self.add_task(next_task)
 
 
 @dataclass
