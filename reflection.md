@@ -45,13 +45,15 @@ I rejected this suggestion and kept the original two-step version. The performan
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I split AI collaboration across two tools with different jobs. Claude Code (CLI) acted as the "lead architect" — reading the assignment requirements, breaking the six phases into individual checklist steps, writing precise implementation prompts one step at a time, and independently verifying each result (reading the diff, running `pytest`, running `main.py`, and even simulating the Streamlit UI with `AppTest` to click buttons and check for exceptions) before moving on. The actual code changes were written by the Claude extension inside VS Code, working from those prompts.
+
+Going one small step at a time — rather than handing over a whole phase at once — was the most helpful pattern. Narrow, specific prompts (e.g., "implement these exact method bodies, don't change signatures") produced code that matched the intended design on the first try far more often than broad prompts would have. Using a fresh chat session for the Phase 4 algorithm brainstorming (separate from the implementation chat) also kept that planning discussion from getting mixed into unrelated context.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+When reviewing `Scheduler.filter_tasks()`, I asked the AI whether the method could be simplified. It proposed collapsing two sequential `if` blocks into a single list comprehension with combined boolean conditions — functionally identical, and technically avoiding one intermediate list allocation. I rejected it: the performance gain was negligible at this app's scale, while the original two-step version ("filter by pet, then by status") was easier to read at a glance than the more compact but denser comprehension. I verified this wasn't just a style preference by confirming the two versions were behaviorally equivalent, then made the readability-vs-performance tradeoff call explicitly rather than assuming "more Pythonic" meant "better" (documented in section 2b).
+
+More generally, I didn't treat "the code runs" as sufficient verification — every phase was checked by actually executing something: unit tests, the CLI demo, or a simulated UI interaction, not just a read-through of the diff.
 
 ---
 
@@ -59,13 +61,15 @@ I rejected this suggestion and kept the original two-step version. The performan
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+The automated suite (`tests/test_pawpal.py`) covers five behaviors: marking a task complete, adding a task to a pet, chronological sorting of an out-of-order task list, daily recurrence (completing a "daily" task correctly spawns a new occurrence with `due_date` advanced by one day), and conflict detection (two tasks at the same time are flagged). These were chosen because they're the core promises the whole app makes to a user — if sorting, recurrence, or conflict detection silently broke, the schedule itself would become untrustworthy, which is the one thing this app can't afford to get wrong.
+
+Beyond automated tests, I also verified behavior manually at every phase: running `main.py` to see real CLI output, and using Streamlit's `AppTest` to simulate clicking "Add task," "Mark complete," and "Generate schedule" in the actual `app.py` to confirm the UI wiring (not just the backend classes in isolation) worked end-to-end, since a passing unit test doesn't guarantee the Streamlit integration is correct.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+⭐⭐⭐⭐ (4/5). All 5 tests pass and I additionally confirmed the UI itself behaves correctly through simulated interaction, so I'm confident the core scheduling logic is correct for the scenarios it was built for. It's not a 5 because the suite doesn't yet cover some edge cases: weekly recurrence specifically (only daily is unit-tested), filtering behavior, a pet with zero tasks, or two recurring tasks with different frequencies interacting in the same conflict check.
+
+If I had more time, I'd add tests for: weekly recurrence, `filter_tasks()` with both `pet_name` and `completed` set simultaneously, an empty task list passed to `sort_by_time`/`detect_conflicts`, and conflicts across two different pets (not just within one pet's task list).
 
 ---
 
@@ -73,12 +77,12 @@ I rejected this suggestion and kept the original two-step version. The performan
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+The recurrence feature (`Task.next_occurrence()` / `Pet.complete_task()`) is what I'm most satisfied with — it required a real design change mid-project (adding `due_date`, deciding which class should own the behavior) rather than just filling in a stub, and I could verify it working correctly all the way through: unit test, CLI output, and live in the Streamlit UI.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+Given another iteration, I'd address the gaps identified in section 4b — particularly testing weekly recurrence and multi-pet conflict detection — and revisit `filter_tasks()`'s `id()`-based approach for identifying tasks, which works but is a workaround for `Task` not being hashable; a cleaner design might give `Task` a unique `id` field instead of relying on Python object identity.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+Acting as the "lead architect" meant my job wasn't writing code line-by-line, it was deciding *what* to build, in what order, and how to verify each piece before trusting it — the AI was fast at producing correct-looking code, but only checking behavior (tests, running the app, simulating clicks) caught the difference between code that looks right and code that actually is right.
