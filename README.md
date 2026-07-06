@@ -83,6 +83,13 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 
 **Confidence Level:** ⭐⭐⭐⭐ (4/5) — all core scheduling behaviors pass reliably, though the suite is still small and doesn't yet cover edge cases like weekly recurrence or filtering.
 
+## ✨ Features
+
+- **Chronological sorting** — `Scheduler.sort_by_time()` orders a pet owner's tasks by time (HH:MM) so the daily schedule reads top to bottom.
+- **Filtering by pet/status** — `Scheduler.filter_tasks()` narrows the task list by pet name and/or completion status, independently or combined.
+- **Time-conflict warnings** — `Scheduler.detect_conflicts()` flags any tasks scheduled at the same time and returns human-readable warning strings instead of raising errors.
+- **Daily/weekly recurrence** — `Task.next_occurrence()` and `Pet.complete_task()` automatically generate the next occurrence of a "daily" or "weekly" task (with `due_date` advanced by one day or one week) as soon as the current one is marked complete.
+
 ## 📐 Smarter Scheduling
 
 | Feature | Method(s) | Notes |
@@ -94,12 +101,42 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+### UI features
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+The Streamlit app (`app.py`) lets a user:
+
+- Enter an owner name and a pet name/species, which create `Owner` and `Pet` objects held in session state.
+- Add a task with a description, time, duration, and priority.
+- View the pet's current task list, with a **Mark complete** checkbox next to each pending task.
+- Click **Generate schedule** to build and display the day's schedule.
+
+### Example workflow
+
+1. Enter an owner name (e.g. "Jordan") and a pet name/species (e.g. "Mochi", dog) — this creates the `Owner` and `Pet` behind the scenes.
+2. Add a task, such as "Morning walk" at "08:00", 20 minutes, high priority. The task appears in the "Current tasks" list.
+3. Add a second task at the same time (e.g. "Feed breakfast" at "08:00") to see the conflict warning later.
+4. Click **Generate schedule**. The app calls `Scheduler.get_today_schedule()`, sorts the results with `Scheduler.sort_by_time()`, and runs `Scheduler.detect_conflicts()` on the sorted list.
+5. Check the checkbox next to a task to mark it complete via `Pet.complete_task()`. If the task's frequency is "daily" or "weekly", `Task.next_occurrence()` fires automatically and a new row for the next occurrence appears in the task list after the page reruns.
+
+### Key Scheduler behaviors shown
+
+- **Sorting** — tasks in the generated schedule always appear ordered by time, regardless of the order they were added.
+- **Conflict warnings** — two tasks sharing the same time (e.g. both at 08:00) each trigger an `st.warning(...)` message instead of silently overlapping; when nothing conflicts, the app shows a success message instead.
+- **Recurrence** — completing a "daily" or "weekly" task doesn't just check it off; it spawns the next occurrence with `due_date` advanced by a day or a week, visible as a new row in the task list.
+
+### Sample CLI output
+
+Running `python main.py` produces output like:
+
+```
+=== Today's Schedule ===
+[08:00] Rex - Morning walk (frequency: once, status: Pending)
+[08:00] Whiskers - Feed breakfast (frequency: once, status: Pending)
+[09:00] Rex - Give medication (frequency: daily, status: Pending)
+[18:30] Whiskers - Clean litter box (frequency: daily, status: Pending)
+
+=== Conflicts ===
+Conflict at 08:00: Morning walk, Feed breakfast
+```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->

@@ -72,17 +72,17 @@ if st.button("Add task"):
 
 if pet.get_tasks():
     st.write("Current tasks:")
-    st.table(
-        [
-            {
-                "description": task.description,
-                "time": task.time,
-                "frequency": task.frequency,
-                "completed": task.completed,
-            }
-            for task in pet.get_tasks()
-        ]
-    )
+    for i, task in enumerate(pet.get_tasks()):
+        row1, row2, row3, row4 = st.columns([3, 1, 1, 1])
+        row1.write(task.description)
+        row2.write(task.time)
+        row3.write(task.frequency)
+        if task.completed:
+            row4.write("✅ completed")
+        else:
+            if row4.checkbox("Mark complete", key=f"complete_task_{i}"):
+                pet.complete_task(task)
+                st.rerun()
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -94,7 +94,15 @@ st.caption("This button should call your scheduling logic once you implement it.
 if st.button("Generate schedule"):
     scheduler = Scheduler(owner)
     sorted_tasks = scheduler.sort_by_time(scheduler.get_today_schedule())
+    conflicts = scheduler.detect_conflicts(sorted_tasks)
+    if conflicts:
+        for conflict in conflicts:
+            st.warning(conflict)
+    else:
+        st.success("No scheduling conflicts detected.")
+
     if sorted_tasks:
+        st.success(f"Schedule generated with {len(sorted_tasks)} task(s).")
         st.table(
             [
                 {
