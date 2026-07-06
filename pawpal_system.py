@@ -1,7 +1,9 @@
 """Logic layer for PawPal+: Owner, Pet, Task, and Scheduler classes."""
 
+import json
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from pathlib import Path
 from typing import List, Optional
 
 
@@ -71,6 +73,59 @@ class Owner:
     def get_all_tasks(self) -> List[Task]:
         """Return a flat list of every task across all of this owner's pets."""
         return [task for pet in self.pets for task in pet.get_tasks()]
+
+    def save_to_json(self, filepath: str = "data.json") -> None:
+        """Serialize this owner, its pets, and their tasks to a JSON file."""
+        data = {
+            "name": self.name,
+            "pets": [
+                {
+                    "name": pet.name,
+                    "species": pet.species,
+                    "tasks": [
+                        {
+                            "description": task.description,
+                            "time": task.time,
+                            "frequency": task.frequency,
+                            "completed": task.completed,
+                            "due_date": task.due_date.isoformat(),
+                            "priority": task.priority,
+                        }
+                        for task in pet.get_tasks()
+                    ],
+                }
+                for pet in self.pets
+            ],
+        }
+        with open(filepath, "w") as f:
+            json.dump(data, f)
+
+    @classmethod
+    def load_from_json(cls, filepath: str = "data.json") -> "Owner":
+        """Load an Owner and its pets/tasks from a JSON file, or return a new empty Owner if missing."""
+        if not Path(filepath).exists():
+            return cls(name="Owner")
+        with open(filepath) as f:
+            data = json.load(f)
+        pets = [
+            Pet(
+                name=pet_data["name"],
+                species=pet_data["species"],
+                tasks=[
+                    Task(
+                        description=task_data["description"],
+                        time=task_data["time"],
+                        frequency=task_data["frequency"],
+                        completed=task_data["completed"],
+                        due_date=date.fromisoformat(task_data["due_date"]),
+                        priority=task_data["priority"],
+                    )
+                    for task_data in pet_data["tasks"]
+                ],
+            )
+            for pet_data in data["pets"]
+        ]
+        return cls(name=data["name"], pets=pets)
 
 
 @dataclass

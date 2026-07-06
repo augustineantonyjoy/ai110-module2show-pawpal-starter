@@ -90,6 +90,7 @@ tests/test_pawpal.py::test_conflict_detection PASSED                     [100%]
 - **Time-conflict warnings** — `Scheduler.detect_conflicts()` flags any tasks scheduled at the same time and returns human-readable warning strings instead of raising errors.
 - **Daily/weekly recurrence** — `Task.next_occurrence()` and `Pet.complete_task()` automatically generate the next occurrence of a "daily" or "weekly" task (with `due_date` advanced by one day or one week) as soon as the current one is marked complete.
 - **Priority-based scheduling** — `Scheduler.sort_by_priority_then_time()` orders tasks by priority (high → medium → low), breaking ties within a priority group by time.
+- **Data persistence** — `Owner.save_to_json()` and `Owner.load_from_json()` save and restore an owner's pets and tasks to/from a JSON file, so data survives an app restart.
 
 ## 📐 Smarter Scheduling
 
@@ -113,6 +114,18 @@ Running `python main.py` also prints the schedule ordered by priority:
 [medium] 18:30 - Clean litter box
 [low] 09:00 - Give medication
 ```
+
+## 💾 Data Persistence
+
+Data is saved to `data.json` in the project root every time a pet, task, or task completion is added/changed.
+
+On app startup, `Owner.load_from_json()` reconstructs the owner, its pets, and their tasks from that file if it exists, so data survives an app restart. If the file doesn't exist yet, a fresh `Owner` is created instead.
+
+Files modified to support this:
+
+- `pawpal_system.py` — adds the `Owner.save_to_json()` and `Owner.load_from_json()` methods.
+- `app.py` — loads the owner from `data.json` on startup and saves after every mutation (adding a pet, adding a task, marking a task complete).
+- `.gitignore` — adds `data.json`, since it's user-generated runtime data and not something to commit.
 
 ## 📸 Demo Walkthrough
 

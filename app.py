@@ -5,6 +5,8 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
 
+st.caption("Data is saved to data.json and persists between app restarts.")
+
 st.markdown(
     """
 Welcome to the PawPal+ starter app.
@@ -43,15 +45,21 @@ st.subheader("Quick Demo Inputs (UI only)")
 owner_name = st.text_input("Owner name", value="Jordan")
 
 if "owner" not in st.session_state:
-    st.session_state["owner"] = Owner(owner_name)
+    loaded_owner = Owner.load_from_json()
+    st.session_state["owner"] = loaded_owner if loaded_owner.pets else Owner(owner_name)
 owner = st.session_state["owner"]
 
 pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
 
 if "pet" not in st.session_state:
-    st.session_state["pet"] = Pet(pet_name, species)
-    owner.add_pet(st.session_state["pet"])
+    existing_pet = next((p for p in owner.pets if p.name == pet_name), None)
+    if existing_pet is not None:
+        st.session_state["pet"] = existing_pet
+    else:
+        st.session_state["pet"] = Pet(pet_name, species)
+        owner.add_pet(st.session_state["pet"])
+        owner.save_to_json()
 pet = st.session_state["pet"]
 
 st.markdown("### Tasks")
@@ -69,6 +77,7 @@ with col4:
 
 if st.button("Add task"):
     pet.add_task(Task(task_title, task_time))
+    owner.save_to_json()
 
 if pet.get_tasks():
     st.write("Current tasks:")
@@ -82,6 +91,7 @@ if pet.get_tasks():
         else:
             if row4.checkbox("Mark complete", key=f"complete_task_{i}"):
                 pet.complete_task(task)
+                owner.save_to_json()
                 st.rerun()
 else:
     st.info("No tasks yet. Add one above.")
